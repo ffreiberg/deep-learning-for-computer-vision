@@ -10,8 +10,6 @@ loss = ( 2 * theta[0] ** 2) + (4 * theta[1]) + tf.maximum(.0, theta[1] + theta[2
 
 init = tf.global_variables_initializer()
 
-print( theta[0] )
-
 sess = tf.Session()
 
 sess.run( init )
