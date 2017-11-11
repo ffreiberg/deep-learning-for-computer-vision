@@ -128,11 +128,11 @@ def exercise_1_2a():
 
             a_after, loss_after = sess.run([a, loss], {x : x_val, y: y_val, z: r_val})
             logger.info('params and loss after training on validation data: \n\t{}\t{}'.format(a_after, loss_after))
-            logger.info('training took {0:.3f}s with {} training steos'.format(end-begin, train_steps))
+            logger.info('training took {0:.3f}s with {ts} training steps'.format(end-begin, ts=train_steps))
 
         logger.info('Saving loss arrays...')
-        np.savez('train_loss_degree_{}'.format(n), train_loss)
-        np.savez('val_loss_degree_{}'.format(n), val_loss)
+        # np.savez('train_loss_degree_{}'.format(n), train_loss)
+        # np.savez('val_loss_degree_{}'.format(n), val_loss)
         logger.info('Finished saving loss arrays')
 
         # plt.plot(val_loss.mean(axis=0))
@@ -238,6 +238,6 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     logging.getLogger().addHandler(logging.StreamHandler())
 
-    # exercise_1_2a()
-    nice_graphs()
+    exercise_1_2a()
+    # nice_graphs()
     # test()
