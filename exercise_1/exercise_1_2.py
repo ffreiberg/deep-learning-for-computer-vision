@@ -397,19 +397,41 @@ def devignetting_all_imgs(a, n):
         misc.imsave('cat_0{}_devignetted.jpg'.format(i), img_devignetted)
 
 
+
+""" The model doesn't help to remove the noise in the image because it describes only the vignetting of the image. To 
+    get the noise we have to subtract the original image from the devignetted image. Then we can compute the empirical 
+    mean and with this also the standard deviation. The formula you can see in the code. Then for denoising we subtract
+    the noise from the devignetted image. Furthermore you can denoise the image with the given sigma and a filter 
+    operation"""
+def exercise_1_2_e():
+    for i in range(1, 4, 1):
+        img = misc.imread('cat_0{}.jpg'.format(i))
+        img_devignetted = misc.imread('cat_0{}_devignetted.jpg'.format(i))
+        noise = img_devignetted - img
+        empirical_mean = np.sum(noise) / img.flatten().shape[0]
+        sig_2 = np.sum(np.power(noise - empirical_mean, 2)) / (img.flatten().shape[0] - 1)
+        logger.info('standard deviation image {}:\t{}'.format(i, np.sqrt(sig_2)))
+
+        plt.imshow(np.uint8(img_devignetted- noise))
+        plt.show()
+
+
+
+
 def main():
 
     # set seed for reproducible outcomes
     seed = 12345
     np.random.seed(seed)
 
-    # exercise_1_2a()
+    exercise_1_2a()
     draw_some_nice_graphs()
-    # find_optimum_degree()
-    # exercise_1_2c()
-    # n, l = find_optimum_degree_and_lambda()
-    # a = retrain_with_optimum(n, l)
-    # devignetting_all_imgs(a, n)
+    find_optimum_degree()
+    exercise_1_2c()
+    n, l = find_optimum_degree_and_lambda()
+    a = retrain_with_optimum(n, l)
+    devignetting_all_imgs(a, n)
+    exercise_1_2_e()
 
 # sidenode: code might be a bit repetitive but it's sunday night, so there might be some quick'n'dirty solutions :D
 if __name__ == '__main__':
