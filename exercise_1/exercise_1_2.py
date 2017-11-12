@@ -259,7 +259,9 @@ def draw_some_nice_graphs():
         plt.ylabel('Loss')
         plt.xlabel('Epochs')
         plt.legend()
+        plt.savefig('degree_{}.png'.format(i))
         plt.show()
+        plt.close()
 
 
 '''find optimum degree'''
@@ -401,13 +403,13 @@ def main():
     seed = 12345
     np.random.seed(seed)
 
-    exercise_1_2a()
+    # exercise_1_2a()
     draw_some_nice_graphs()
-    find_optimum_degree()
-    exercise_1_2c()
-    n, l = find_optimum_degree_and_lambda()
-    a = retrain_with_optimum(n, l)
-    devignetting_all_imgs(a, n)
+    # find_optimum_degree()
+    # exercise_1_2c()
+    # n, l = find_optimum_degree_and_lambda()
+    # a = retrain_with_optimum(n, l)
+    # devignetting_all_imgs(a, n)
 
 # sidenode: code might be a bit repetitive but it's sunday night, so there might be some quick'n'dirty solutions :D
 if __name__ == '__main__':
