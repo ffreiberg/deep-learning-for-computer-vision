@@ -402,7 +402,11 @@ def devignetting_all_imgs(a, n):
     get the noise we have to subtract the original image from the devignetted image. Then we can compute the empirical 
     mean and with this also the standard deviation. The formula you can see in the code. Then for denoising we subtract
     the noise from the devignetted image. Furthermore you can denoise the image with the given sigma and a filter 
-    operation"""
+    operation
+    Otherwise one could apply a gaussian filter with an adaptable sigma (variable for tensorflow to optimize) 
+    to the image after vignetting and thereby getting 
+    model = tf.multiply(x, s) + gauss_filter(sigma) (because gauss filter is additive)
+"""
 def exercise_1_2_e():
     for i in range(1, 4, 1):
         img = misc.imread('cat_0{}.jpg'.format(i))
