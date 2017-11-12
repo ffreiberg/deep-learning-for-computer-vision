@@ -34,10 +34,7 @@ def read_imgs(start=1, end=3):
     return np.asarray(X).flatten().astype(np.float32), np.asarray(y).flatten().astype(np.float32), np.asarray(r).flatten().astype(np.float32)
 
 
-def exercise_1_2a(regularization=False):
-
-    seed = 12345
-    np.random.seed(seed)
+def exercise_1_2a():
 
     z = tf.placeholder(tf.float32)
     x = tf.placeholder(tf.float32)
@@ -122,43 +119,9 @@ def exercise_1_2a(regularization=False):
         np.savez('val_loss_degree_{}{}'.format(n, str), val_loss)
         # np.savez('best_params_degree_{}{}'.format(n, str), best_params)
         logger.info('Finished saving loss arrays')
-        # plt.plot(val_loss.mean(axis=0))
-        # plt.show()
-            # s_ = a_[0]
-            #
-            # for i in range(1, n):
-            #     s_ += a_[i] * (r_ ** i)
-            #
-            #
-            # J = np.zeros(x_tr.shape, np.float32)
-            # J[:, :, 0] = y_tr[:, :, 0] / s_
-            # J[:, :, 1] = y_tr[:, :, 1] / s_
-            # J[:, :, 2] = y_tr[:, :, 2] / s_
-            #
-            # plt.imshow(np.uint8(J))
-            # # plt.imshow(J)
-            # plt.show()
-            # r = r.flatten()
-            # r = np.dstack((r,r,r)).flatten()
-            # y_train = y_tr.flatten()
-            # x_train = x_tr.flatten()
-            # r_ = r
-            # r = np.sqrt(xv ** 2 + yv ** 2) / np.sqrt(wc ** 2 + hc ** 2)
-            #
-            # xv, yv = np.meshgrid(np.arange(W) - wc, np.arange(H) - hc)
-            #
-            # hc = H / 2
-            # wc = W / 2
-            # H = x_tr.shape[0]
-            # W = x_tr.shape[1]
-            # y_tr = misc.imread('cat_01_vignetted.jpg')
-            # x_tr = misc.imread('cat_01.jpg')
 
 
 def exercise_1_2c():
-
-    seed = 12345
-    np.random.seed(seed)
 
     z = tf.placeholder(tf.float32)
     x = tf.placeholder(tf.float32)
@@ -300,6 +263,59 @@ def find_optimum_degree_and_lambda(lambdas=5, min_degree=5, max_degree=10):
     return optimum_degree, optimum_lambda
 
 
+def retrain_with_optimum(degree, weight_decay):
+
+    z = tf.placeholder(tf.float32)
+    x = tf.placeholder(tf.float32)
+    y = tf.placeholder(tf.float32)
+
+    logger.info('Reading images...')
+    X_data, y_data, r = read_imgs()
+    logger.info('Finished reading images')
+
+    train_steps = 1000
+
+    a = tf.Variable(np.random.uniform(-1, 1, degree + 1), dtype=tf.float32)
+    s = a[0]
+
+    for i in range(1, degree + 1):
+        s += a[i] * (z ** i)
+
+    model = tf.multiply(x, s)
+
+    # tf.losses.mean_squared_error(y, model)
+    loss = tf.reduce_mean(tf.pow(tf.subtract(model, y), 2)) + (weight_decay * 0.5 * tf.reduce_sum(tf.pow(a, 2)))
+    optimizer = tf.train.AdamOptimizer(0.01)
+    train = optimizer.minimize(loss)
+
+    x_train = X_data
+    y_train = y_data
+    r_train = r
+
+    init = tf.global_variables_initializer()
+    sess = tf.Session()
+    sess.run(init)
+
+    a_before, loss_before = sess.run([a, loss], {x : x_train, y: y_train, z: r})
+
+    logger.info('params and loss before training on training data: \n\t{}\t{}'.format(a_before, loss_before))
+
+    begin = time.time()
+
+    for i in range(train_steps):
+        sess.run(train, {x : x_train, y: y_train, z: r_train})
+        if (i % 100) == 0:
+            loss_train = sess.run(loss, {x : x_train, y: y_train, z: r_train})
+            logger.info('{}: {}'.format(i, loss_train))
+    end = time.time()
+
+    a_after, loss_after = sess.run([a, loss], {x : x_train, y: y_train, z: r})
+    logger.info('params and loss after training on validation data: \n\t{}\t{}'.format(a_after, loss_after))
+    logger.info('training took {0:.3f}s with {ts} training steps'.format(end-begin, ts=train_steps))
+
+    return a_after
+
+
 def devignetting(img, a, n):
     W = img.shape[1]
     H = img.shape[0]
@@ -326,14 +342,32 @@ def devignetting(img, a, n):
     return J
 
 
+def devignetting_all_imgs(a, n):
+
+    for i in range(4,7):
+        img = misc.imread('cat_0{}_vignetted.jpg'.format(i))
+        img_devignetted = devignetting(img, a, n)
+        misc.imsave('cat_0{}_devignetted.jpg'.format(i), img_devignetted)
+
+
+def main():
+
+    seed = 12345
+    np.random.seed(seed)
+
+    # exercise_1_2a()
+    # draw_some_nice_graphs()
+    # exercise_1_2c()
+    find_optimum_degree()
+    n, l = find_optimum_degree_and_lambda()
+    a = retrain_with_optimum(n, l)
+    devignetting_all_imgs(a, n)
+
+
 if __name__ == '__main__':
 
     logger = logging.getLogger('ex1')
     logger.setLevel(logging.INFO)
     logging.getLogger().addHandler(logging.StreamHandler())
 
-    # exercise_1_2a()
-    # nice_graphs()
-    # exercise_1_2c()
-    # find_optimum_degree()
-    find_optimum_degree_and_lambda()
+    main()
