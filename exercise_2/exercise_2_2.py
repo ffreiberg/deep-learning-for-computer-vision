@@ -45,7 +45,7 @@ def main(file):
     epochs = 25
     num_classes = 10
     mbs = 32
-    two_convs = True
+    two_convs = False
 
     logger.info('loading data from file  {}'.format(file))
     x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
@@ -93,7 +93,7 @@ def main(file):
                 batch_x, batch_y = b
                 if i % 100 == 0:
                     train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y})
-                    logger.info('Epoch {}, step {}: accuracy: {:.2f}%'.format(e, i, train_acc * 100))
+                    logger.info('Epoch {}, step {} ({} / {} samples): accuracy: {:.2f}%'.format(e, i, mbs * i, x_tr.shape[0], train_acc * 100))
                 train.run(feed_dict={x: batch_x, y: batch_y})
             end = time.time()
             logger.info('epoch training took {:.3f}s'.format(end - begin))
