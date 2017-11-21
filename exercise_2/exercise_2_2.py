@@ -64,14 +64,15 @@ def main(file):
         b_conv2 = bias([64])
         h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
         h_pool2 = max_pool_2x2(h_conv2)
-
-    w_fc = weight([7 * 7 * 64, 1024])
+        w_fc = weight([7 * 7 * 64, 1024])
+    else:
+        w_fc = weight([14 * 14 * 32, 1024])
     b_fc = bias([1024])
 
     if two_convs:
         h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
     else:
-        h_pool_fc = tf.reshape(h_pool1, [-1, 7 * 7 * 64])
+        h_pool_fc = tf.reshape(h_pool1, [-1, 14 * 14 * 32])
 
     h_fc = tf.nn.relu(tf.matmul(h_pool_fc, w_fc) + b_fc)
 
