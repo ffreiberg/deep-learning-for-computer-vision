@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 import tensorflow as tf
 import logging
+import matplotlib.pyplot as plt
 
 def load_data(file):
 
@@ -51,7 +52,7 @@ def max_pool_2x2(x):
 
 def main(file):
 
-    epochs = 100
+    epochs = 5
 
     logger.info('loading data from file  {}'.format(file))
     x_tr, y_tr, x_te, y_te = load_data(file)
@@ -87,11 +88,15 @@ def main(file):
     h_pool2flat = tf.reshape(h_pool2, [-1, 7*7*64])
     h_fully = tf.nn.relu(tf.matmul(h_pool2flat, W_fully1) + b_fully1)
 
+    #-------------Dropout---------------------
+    keep_prob = tf.placeholder(tf.float32)
+    h_fully_drop = tf.nn.dropout(h_fully, keep_prob)
+
     #------------fully conected 2-------------------------
     W_fully2 = weight_variable([1024, 10])
     b_fully2 = bias_variable([10])
 
-    pred = tf.matmul(h_fully, W_fully2) + b_fully2
+    pred = tf.matmul(h_fully_drop, W_fully2) + b_fully2
 
 
     #---------------training------------------------------
@@ -106,24 +111,36 @@ def main(file):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for i in range(epochs):
+            # connect trainig data and labels for shuffeling and seperate to minibatches
             training_data = np.column_stack((x_tr, y_tr))
             np.random.shuffle(training_data)
             mini_batches = [training_data[k:k + mini_batch_size] for k in range(0, x_tr.shape[0], mini_batch_size)]
 
+            # iterate through minibatches and apply gradient descent with Adam Optimizer
             for mini_batch in mini_batches:
                 xtr = mini_batch[:,np.arange(784)]
                 ytr = mini_batch[:,-10:]
 
-                train_step.run(feed_dict={x: xtr, y_: ytr})
+                train_step.run(feed_dict={x: xtr, y_: ytr, keep_prob: 0.5})
 
-            if i % 10 == 0:
-                train_accuracy = accuracy.eval(feed_dict={
-                    x: xtr, y_: ytr})
-                print('step %d, training accuracy %g' % (i, train_accuracy))
+
+            train_accuracy = accuracy.eval(feed_dict={x: xtr, y_: ytr, keep_prob: 1.0})
+            print('Epoch %d, training accuracy %g %%' % (i, train_accuracy * 100))
 
 
         print('test accuracy %g' % accuracy.eval(feed_dict={
-            x: x_te, y_: y_te}))
+            x: x_te, y_: y_te, keep_prob: 1.0}))
+
+        # only for me to testing
+        for i in range(10):
+            print(y_te[i])
+            test = np.argmax(sess.run(pred, feed_dict={
+                x: x_te[i].reshape((1,784)), y_: y_te[i].reshape((1,10)), keep_prob: 1.0}))
+            print(test)
+            print(np.argmax(y_te[i]))
+            print("-------------------------------")
+            #plt.imshow(x_te[i].reshape((28, 28)))
+            #plt.show()
 
 
 if __name__ == '__main__':
