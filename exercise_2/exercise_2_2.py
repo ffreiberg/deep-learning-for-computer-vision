@@ -4,6 +4,10 @@ import tensorflow as tf
 from load_data import load_data, _file
 
 
+def reshape(data):
+    return np.reshape(data, [-1, int(np.sqrt(data.shape)), int(np.sqrt(data.shape)), 1])
+
+
 def weight(shape):
     initial_weight = tf.truncated_normal(shape, stddev=.1)
     return tf.Variable(initial_weight)
@@ -24,8 +28,8 @@ def max_pool_2x2(x):
 
 def minibatches(inputs, targets, mbs, shuffle):
 
+    idx = np.arange(len(inputs))
     if shuffle:
-        idx = np.arange(len(inputs))
         np.random.shuffle(idx)
     for i in range(0, len(inputs) - mbs + 1, mbs):
         if shuffle:
@@ -35,10 +39,9 @@ def minibatches(inputs, targets, mbs, shuffle):
         yield inputs[batch_idx], targets[batch_idx]
 
 
-
 def main(file):
 
-    epochs = 60
+    epochs = 25
     num_classes = 10
     mbs = 32
 
@@ -46,10 +49,8 @@ def main(file):
     x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
     logger.info('loading finished')
 
-    x = tf.placeholder(tf.float32, [None, 784])
+    x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
-    w = tf.Variable(tf.zeros([784, 10]))
-    b = tf.Variable(tf.zeros([10]))
 
     w_conv1 = weight([5, 5, 1, 32])
     b_conv1 = bias([32])
@@ -78,10 +79,15 @@ def main(file):
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for e in epochs:
-            for b in minibatches(x_tr, y_tr, mbs, shuffle=True):
+        for e in range(epochs):
+            for i, b in enumerate(minibatches(x_tr, y_tr, mbs, shuffle=True)):
                 batch_x, batch_y = b
-                sess.run(train, feed_dict={x: batch_x, y: batch_y})
+                if i % 100 == 0:
+                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y})
+                    logger.info('Epoch {}, step {}: accuracy: {:.2f}%'.format(e, i, train_acc * 100))
+                train.run(feed_dict={x: batch_x, y: batch_y})
+
+        logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
 
     pass
 
