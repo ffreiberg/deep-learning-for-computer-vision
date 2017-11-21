@@ -1,56 +1,26 @@
-import h5py
-import numpy as np
-import tensorflow as tf
 import logging
+import tensorflow as tf
 
-def load_data(file):
-
-    with h5py.File(file) as hf:
-        x_train = normalize_data(np.array(hf.get(tr_x)).astype(np.float32))
-        y_train = np.array(hf.get(tr_y))
-        x_test = normalize_data(np.array(hf.get(te_x)).astype(np.float32))
-        y_test = np.array(hf.get(te_y))
-
-    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1] * x_train.shape[2]))
-    x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1] * x_test.shape[2]))
-
-    return x_train, y_train, x_test, y_test
-
-
-def normalize_data(data):
-
-    data /= data.max()
-    data -= data.mean()
-
-    return data
-
-
-def one_hot(data, num_classes):
-
-    data = np.eye(num_classes)[data.flatten()]
-
-    return data
+from load_data import load_data, _file
 
 
 def main(file):
 
     epochs = 1000
+    num_classes = 10
 
     logger.info('loading data from file  {}'.format(file))
-    x_tr, y_tr, x_te, y_te = load_data(file)
+    x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
     logger.info('loading finished')
 
-    y_tr = one_hot(y_tr, 10)
-    y_te = one_hot(y_te, 10)
-
     x = tf.placeholder(tf.float32, [None, 784])
-    y = tf.placeholder(tf.float32, [None, 10])
-    w = tf.Variable(tf.zeros([784, 10]))
-    b = tf.Variable(tf.zeros([10]))
+    y = tf.placeholder(tf.float32, [None, num_classes])
+    w = tf.Variable(tf.zeros([784, num_classes]))
+    b = tf.Variable(tf.zeros([num_classes]))
 
     pred = tf.matmul(x, w) + b
 
-    loss = tf.reduce_mean(- tf.reduce_sum(y * tf.log(tf.nn.softmax(pred)), reduction_indices=[1]))
+    loss = tf.reduce_mean(-tf.reduce_sum(y * tf.log(tf.nn.softmax(pred)), reduction_indices=[1]))
 
     train_step = tf.train.AdamOptimizer(0.1).minimize(loss)
 
@@ -70,16 +40,8 @@ def main(file):
 
 if __name__ == '__main__':
 
-    logger = logging.getLogger('ex2')
+    logger = logging.getLogger('ex2_1')
     logger.setLevel(logging.INFO)
     logging.getLogger().addHandler(logging.StreamHandler())
-
-
-    te_x = 'test_x'
-    te_y = 'test_y'
-    tr_x = 'train_x'
-    tr_y = 'train_y'
-
-    _file = 'pmjt_sample_20161116/train_test_file_list.h5'
 
     main(file=_file)
