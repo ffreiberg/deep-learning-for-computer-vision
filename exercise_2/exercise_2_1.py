@@ -10,7 +10,7 @@ def main(file):
     num_classes = 10
 
     logger.info('loading data from file  {}'.format(file))
-    x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
+    x_tr, y_tr, x_te, y_te = load_data(file, num_classes, flatten=True)
     logger.info('loading finished')
 
     x = tf.placeholder(tf.float32, [None, 784])

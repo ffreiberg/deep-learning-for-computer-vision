@@ -1,3 +1,4 @@
+import time
 import logging
 import numpy as np
 import tensorflow as tf
@@ -44,6 +45,7 @@ def main(file):
     epochs = 25
     num_classes = 10
     mbs = 32
+    two_convs = True
 
     logger.info('loading data from file  {}'.format(file))
     x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
@@ -57,14 +59,20 @@ def main(file):
     h_conv1 = tf.nn.relu(conv2d(x, w_conv1) + b_conv1)
     h_pool1 = max_pool_2x2(h_conv1)
 
-    w_conv2 = weight([5, 5, 32, 64])
-    b_conv2 = bias([64])
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
-    h_pool2 = max_pool_2x2(h_conv2)
+    if two_convs:
+        w_conv2 = weight([5, 5, 32, 64])
+        b_conv2 = bias([64])
+        h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
+        h_pool2 = max_pool_2x2(h_conv2)
 
     w_fc = weight([7 * 7 * 64, 1024])
     b_fc = bias([1024])
-    h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+
+    if two_convs:
+        h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+    else:
+        h_pool_fc = tf.reshape(h_pool1, [-1, 7 * 7 * 64])
+
     h_fc = tf.nn.relu(tf.matmul(h_pool_fc, w_fc) + b_fc)
 
     w_out = weight([1024, 10])
@@ -80,16 +88,16 @@ def main(file):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for e in range(epochs):
+            begin = time.time()
             for i, b in enumerate(minibatches(x_tr, y_tr, mbs, shuffle=True)):
                 batch_x, batch_y = b
                 if i % 100 == 0:
                     train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y})
                     logger.info('Epoch {}, step {}: accuracy: {:.2f}%'.format(e, i, train_acc * 100))
                 train.run(feed_dict={x: batch_x, y: batch_y})
-
+            end = time.time()
+            logger.info('epoch training took {:.3f}s'.format(end - begin))
         logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
-
-    pass
 
 
 if __name__ == '__main__':
