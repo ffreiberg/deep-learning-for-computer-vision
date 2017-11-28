@@ -44,7 +44,7 @@ def minibatches(inputs, targets, mbs, shuffle):
 def main(file):
 
     eta = 1e-4
-    mbs = 100
+    mbs = 10
     epochs = 25
     graphs = True
     num_classes = 10
@@ -154,7 +154,7 @@ def main(file):
         plt.ylim(0, 100)
         plt.plot(test_acc_arr[0], label='one conv')
         plt.plot(test_acc_arr[1], label='two convs')
-	plt.legend()
+        plt.legend()
         plt.savefig('test_data_mbs_{}.png'.format(mbs))
         # plt.show()
         plt.close()
@@ -172,7 +172,7 @@ Remove one convolution layer and describe by your own words how does it influenc
 Try different step sizes for the training. Explain what happens when the step-size is too large and too small. 
 Draw graphs which how does the accuracy changes over iterations with different step sizes.
 
-- If the step-size is too large global minima are likely to be missed out, because (you could say) you 'jump over' said minimum (and/or oscillate around a minimum).
+- If the step-size is too large global minima are likely to be missed out, because (you could say) you 'jump over' said minimum (and/or oscillate around a minimum). (As seen in 'training_data_eta_0.1_mbs_100.png')
 
 - On the other hand, if your step-size is too small, you are likely to get stuck within a global minimum. And of course your training time
     increases.

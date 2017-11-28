@@ -1,12 +1,14 @@
 import logging
+import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 from load_data import load_data, _file
 
 
 def main(file):
 
-    epochs = 1000
+    epochs = 10000
     num_classes = 10
 
     logger.info('loading data from file  {}'.format(file))
@@ -22,7 +24,7 @@ def main(file):
 
     loss = tf.reduce_mean(-tf.reduce_sum(y * tf.log(tf.nn.softmax(pred)), reduction_indices=[1]))
 
-    train_step = tf.train.AdamOptimizer(0.1).minimize(loss)
+    train_step = tf.train.AdamOptimizer(0.01).minimize(loss)
 
     sess = tf.InteractiveSession()
 
@@ -37,6 +39,17 @@ def main(file):
     correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
     acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
     print('Accuracy on test set: {0:.2f}%'.format(sess.run(acc, feed_dict={x: x_te, y: y_te}) * 100))
+
+    _w = sess.run(w, feed_dict={x: x_tr, y: y_tr})
+    print(_w.shape)
+
+    for i, weights in enumerate(_w.T):
+        plt.subplot(1, num_classes, i + 1)
+        img = np.reshape(weights, (int(np.sqrt(len(weights))), int(np.sqrt(len(weights)))))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+    plt.show()
+
 
 if __name__ == '__main__':
 
