@@ -8,7 +8,7 @@ from load_data import load_data, _file
 
 def main(file):
 
-    epochs = 10000
+    epochs = 1000
     num_classes = 10
 
     logger.info('loading data from file  {}'.format(file))
@@ -43,11 +43,22 @@ def main(file):
     _w = sess.run(w, feed_dict={x: x_tr, y: y_tr})
     print(_w.shape)
 
+    idx = 1
     for i, weights in enumerate(_w.T):
-        plt.subplot(1, num_classes, i + 1)
+        plt.subplot(num_classes, num_classes, idx)
+        idx += 1
         img = np.reshape(weights, (int(np.sqrt(len(weights))), int(np.sqrt(len(weights)))))
         plt.imshow(img, cmap='gray')
         plt.axis('off')
+        tmp = x_tr[y_tr[:, i] == 1][:9]
+        for j, pic in enumerate(tmp):
+            plt.subplot(num_classes, num_classes, idx)
+            idx += 1
+            img = np.reshape(pic, (int(np.sqrt(len(pic))), int(np.sqrt(len(pic)))))
+            plt.imshow(img, cmap='gray')
+            plt.axis('off')
+
+    plt.savefig('a_nice_table_of_images.png')
     plt.show()
 
 
