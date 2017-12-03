@@ -95,8 +95,8 @@ def main(file):
             logger.info('epoch training took {:.3f}s'.format(end - begin))
         logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
 
-    _w_conv1, _b_conv1, _w_conv2, _b_conv2, _w_fc, _b_fc, _w_out, _b_out = sess.run([w_conv1, b_conv1, w_conv2, b_conv2, w_fc, b_fc])
-    np.savez(_params_file, w_conv1=_w_conv1, b_conv1=_b_conv1, w_conv2=_w_conv2, b_conv2=_b_conv2, w_fc=_w_fc, b_fc=_b_fc, w_out=_w_out, b_out=_b_out)
+        _w_conv1, _b_conv1, _w_conv2, _b_conv2, _w_fc, _b_fc, _w_out, _b_out = sess.run([w_conv1, b_conv1, w_conv2, b_conv2, w_fc, b_fc])
+        np.savez(_params_file, w_conv1=_w_conv1, b_conv1=_b_conv1, w_conv2=_w_conv2, b_conv2=_b_conv2, w_fc=_w_fc, b_fc=_b_fc, w_out=_w_out, b_out=_b_out)
 
 if __name__ == '__main__':
     logger = logging.getLogger('pretrain')
