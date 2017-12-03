@@ -1,0 +1,119 @@
+import time
+import logging
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from load_data import load_data, _file
+
+
+def reshape(data):
+    return np.reshape(data, [-1, int(np.sqrt(data.shape)), int(np.sqrt(data.shape)), 1])
+
+
+def weight(shape, name='', trainable=True):
+    if trainable:
+        initial_weight = tf.truncated_normal(shape, stddev=.1)
+    else:
+        initial_weight = np.load(_params_file + '.npz')[name]
+    return tf.Variable(initial_weight, trainable=trainable)
+
+
+def bias(shape, name='', trainable=True):
+    if trainable:
+        initial_bias = tf.constant(.1, shape=shape)
+    else:
+        initial_bias = np.load(_params_file + '.npz')[name]
+    return tf.Variable(initial_bias, trainable=trainable)
+
+
+def conv2d(x, w):
+    return tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding='SAME')
+
+
+def max_pool_2x2(x):
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+
+def minibatches(inputs, targets, mbs, shuffle):
+
+    idx = np.arange(len(inputs))
+    if shuffle:
+        np.random.shuffle(idx)
+    for i in range(0, len(inputs) - mbs + 1, mbs):
+        if shuffle:
+            batch_idx = idx[i:i + mbs]
+        else:
+            batch_idx = slice(i, idx)
+        yield inputs[batch_idx], targets[batch_idx]
+
+
+def main(file):
+
+    eta = 1e-4
+    lambda_ = .5
+    num_classes = 10
+
+    logger.info('loading data from file  {}'.format(file))
+    x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
+    x_tr = x_tr[0]
+    y_tr = y_tr[0]
+    logger.info('loading finished')
+
+    x = tf.Variable(tf.constant(.1, shape=[1, 28, 28, 1]), dtype=tf.float32)
+    #x = tf.placeholder(tf.float32, [None, 28, 28, 1])
+    y = tf.placeholder(tf.float32, [None, 10])
+
+    w_conv1 = weight([5, 5, 1, 32], 'w_conv1', False)
+    b_conv1 = bias([32], 'b_conv1', False)
+    h_conv1 = tf.nn.relu(conv2d(x, w_conv1) + b_conv1)
+    h_pool1 = max_pool_2x2(h_conv1)
+
+
+    w_conv2 = weight([5, 5, 32, 64], 'w_conv2', False)
+    b_conv2 = bias([64], 'b_conv2', False)
+    h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
+    h_pool2 = max_pool_2x2(h_conv2)
+
+    w_fc = weight([7 * 7 * 64, 1024], 'w_fc', False)
+    b_fc = bias([1024], 'b_fc', False)
+    h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+    h_fc = tf.nn.relu(tf.matmul(h_pool_fc, w_fc) + b_fc)
+
+    w_out = weight([1024, 10], 'w_out', False)
+    b_out = bias([10], 'b_out', False)
+
+    pred = tf.matmul(h_fc, w_out) + b_out
+
+    loss = lambda_ * tf.reduce_mean(x)**2 - pred[0][0]
+    train = tf.train.GradientDescentOptimizer(eta).minimize(loss)
+
+
+    with tf.Session() as sess:
+        # _x = np.random.uniform(0, 1, (1, 28, 28, 1)).astype('float32')
+        # x = tf.Variable(tf.constant(.0, shape=[1, 28, 28, 1]), dtype=tf.float32)
+        # x = tf.Variable(tf.constant(x_tr, shape=(1, 28, 28, 1)))
+        sess.run(tf.global_variables_initializer())
+        img = sess.run(x).reshape((28,28))
+        plt.imshow(img, cmap='Greys_r')
+        plt.show()
+        for i in range(100):
+            print(sess.run(loss))
+            x_b = sess.run(x)
+            sess.run(train)
+            x_a = sess.run(x)
+            xxxxx = np.all(x_b == x_a)
+            print(xxxxx)
+        img2 = sess.run(x).reshape((28, 28))
+        plt.imshow(img2, cmap='Greys_r')
+        plt.show()
+
+
+if __name__ == '__main__':
+
+    _params_file='all_params'
+
+    logger = logging.getLogger('ex2_4')
+    logger.setLevel(logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler())
+
+    main(file=_file)
