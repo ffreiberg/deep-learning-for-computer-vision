@@ -60,9 +60,7 @@ def main(file):
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
 
-    # for j in range(11):
-    #     mbs = 2 ** j
-
+    # loop over different learning rates to find the best one
     for i in range(10):
 
         train_acc_list_one_conv = []
@@ -70,11 +68,13 @@ def main(file):
 
         eta = 1 / (10 ** i)
 
+        # first conv layer
         w_conv1 = weight([5, 5, 1, 32])
         b_conv1 = bias([32])
         h_conv1 = tf.nn.relu(conv2d(x, w_conv1) + b_conv1)
         h_pool1 = max_pool_2x2(h_conv1)
 
+        # with and without second conv layer
         for j in range(2):
 
             two_convs = j
@@ -106,6 +106,7 @@ def main(file):
             correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
             acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+            # training and evaluation
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
                 for e in range(epochs):

@@ -51,23 +51,15 @@ def main(file):
 
     eta = 1e-4
     lambda_ = .5
-    num_classes = 10
+    filename = 'output_layer'
 
-    logger.info('loading data from file  {}'.format(file))
-    x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
-    x_tr = x_tr[0]
-    y_tr = y_tr[0]
-    logger.info('loading finished')
-
-    x = tf.Variable(tf.constant(.1, shape=[1, 28, 28, 1]), dtype=tf.float32)
-    #x = tf.placeholder(tf.float32, [None, 28, 28, 1])
-    y = tf.placeholder(tf.float32, [None, 10])
+    # initialize variable input
+    x = tf.Variable(tf.constant(.0, shape=[1, 28, 28, 1]), dtype=tf.float32)
 
     w_conv1 = weight([5, 5, 1, 32], 'w_conv1', False)
     b_conv1 = bias([32], 'b_conv1', False)
     h_conv1 = tf.nn.relu(conv2d(x, w_conv1) + b_conv1)
     h_pool1 = max_pool_2x2(h_conv1)
-
 
     w_conv2 = weight([5, 5, 32, 64], 'w_conv2', False)
     b_conv2 = bias([64], 'b_conv2', False)
@@ -84,29 +76,28 @@ def main(file):
 
     pred = tf.matmul(h_fc, w_out) + b_out
 
-    loss = lambda_ * tf.reduce_mean(x)**2 - pred[0][0]
-    train = tf.train.GradientDescentOptimizer(eta).minimize(loss)
-
+    loss = lambda_ * tf.reduce_mean(x)**2 - pred
+    # optimize for activation of first unit in output layer
+    train = tf.train.GradientDescentOptimizer(eta).minimize(loss[0][0])
 
     with tf.Session() as sess:
-        # _x = np.random.uniform(0, 1, (1, 28, 28, 1)).astype('float32')
-        # x = tf.Variable(tf.constant(.0, shape=[1, 28, 28, 1]), dtype=tf.float32)
-        # x = tf.Variable(tf.constant(x_tr, shape=(1, 28, 28, 1)))
         sess.run(tf.global_variables_initializer())
-        img = sess.run(x).reshape((28,28))
-        plt.imshow(img, cmap='Greys_r')
-        plt.show()
-        for i in range(100):
-            print(sess.run(loss))
-            x_b = sess.run(x)
-            sess.run(train)
-            x_a = sess.run(x)
-            xxxxx = np.all(x_b == x_a)
-            print(xxxxx)
-        img2 = sess.run(x).reshape((28, 28))
-        plt.imshow(img2, cmap='Greys_r')
-        plt.show()
 
+        img = sess.run(x).reshape((28,28))
+        plt.subplot(2, 2, 1)
+        plt.title('before')
+        plt.imshow(img, cmap='Greys_r')
+        plt.axis('off')
+
+        for i in range(100):
+            sess.run(train)
+
+        img2 = sess.run(x).reshape((28, 28))
+        plt.subplot(2, 2, 2)
+        plt.title('after')
+        plt.imshow(img2, cmap='Greys_r')
+        plt.axis('off')
+        plt.savefig('maximum_activation_neuron_in_{}.png'.format(filename))
 
 if __name__ == '__main__':
 
