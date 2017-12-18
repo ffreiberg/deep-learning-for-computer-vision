@@ -1,0 +1,45 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{ngerman}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{ragged2e}
+
+\title{}
+\author{}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{exercise 3.2 Backpropagation} \\
+(a)  
+\end{flushleft}
+
+\begin{equation*}
+\begin{aligned}
+    E(w) &= \frac{1}{L} \sum_{l=1}^L || d_l - f(x_l;w) ||^2_2 \\
+    \nabla E(w) &= \frac{2}{L} \sum_{l=1}^L (f(x_l;w) - d_l) \\
+    \frac{\partial f}{\partial w_{1,1}^{2,0}} &= \sum_{j=0}^2 w_{0,j}^{1,1} \, x_j \\ 
+    \frac{\partial E}{\partial w_{1,1}^{2,0}} &= \frac{2}{L} \sum_{l=1}^L (f(x_l;w) - d_l)  \sum_{j=0}^2 w_{0,j}^{1,1} \, x_j \\
+\end{aligned}
+\end{equation*}
+
+\begin{flushleft}
+(b)
+\end{flushleft}
+
+\begin{equation*}
+\begin{aligned}
+    g(x;w) &= \sum_{j=0}^2 w_{0,j}^{1,1} \, x_j \\
+    \frac{\partial g}{\partial w_{0,1}^{1,1}} &= x_1 \\
+    \frac{\partial E}{\partial w_{0,1}^{1,1}} &= \frac{2}{L} \sum_{l=1}^L (f(x_l;w) - d_l) \, w_{1,1}^{2,0} \, x_1 
+\end{aligned}
+\end{equation*}
+
+
+\end{document}
