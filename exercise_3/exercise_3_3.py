@@ -137,7 +137,7 @@ def main(file):
         plt.title('accuracy on test set with mbs: {}'.format(mbs))
         plt.xticks(np.arange(len(alphas)), alphas)
         plt.ylabel('accuracy')
-        plt.ylim(0, 100)
+        plt.ylim(90, 100)
         plt.plot(test_acc_arr)
         plt.savefig('leaky_relu_test_data_mbs_{}.png'.format(mbs))
         # plt.show()
