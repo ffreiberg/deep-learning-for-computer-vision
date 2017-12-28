@@ -56,7 +56,7 @@ def main(file):
     graphs = True
     num_classes = 10
     alphas = [.9, .5, .25, .1, .05, .01, .005, .001]
-    test_acc_list_two_convs = []
+    test_acc_list = []
 
     logger.info('loading data from file  {}'.format(file))
     x_tr, y_tr, x_te, y_te = load_data(file, num_classes)
@@ -68,7 +68,8 @@ def main(file):
     # loop over different learning rates to find the best one
     for alpha in alphas:
 
-        train_acc_list_two_convs = []
+        train_acc_list = []
+        train_loss_list = []
 
         # first conv layer
         w_conv1 = weight([5, 5, 1, 32])
@@ -106,11 +107,15 @@ def main(file):
                     batch_x, batch_y = b
                     if graphs:
                         train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y})
-                        train_acc_list_two_convs.append(train_acc * 100)
+                        train_acc_list.append(train_acc * 100)
+                        train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y})
+                        train_loss_list.append(train_loss)
                     if i % 100 == 0:
                         train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y})
-                        logger.info('Epoch {}, step {} ({} / {} samples): accuracy: {:.2f}%'.format(e, i, mbs * i,
+                        train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y})
+                        logger.info('Epoch {}, step {} ({} / {} samples): \tloss: {:.6f}\taccuracy: {:.2f}%'.format(e, i, mbs * i,
                                                                                                     x_tr.shape[0],
+                                                                                                    train_loss,
                                                                                                     train_acc * 100))
                     train.run(feed_dict={x: batch_x, y: batch_y})
                 end = time.time()
@@ -118,25 +123,35 @@ def main(file):
             logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
             if graphs:
                 test_acc = acc.eval(feed_dict={x: x_te, y: y_te}) * 100
-                test_acc_list_two_convs.append(test_acc)
+                test_acc_list.append(test_acc)
 
 
         if graphs:
-            train_acc_arr = np.asarray(train_acc_list_two_convs)
+            train_acc_arr = np.asarray(train_acc_list)
             plt.title('alpha: {} mbs: {}'.format(alpha, mbs))
             plt.xlabel('training steps')
             plt.ylabel('accuracy')
             plt.ylim(0, 100)
             plt.plot(train_acc_arr)
-            plt.savefig('leaky_relu_training_data_alpha_{}_mbs_{}.png'.format(alpha, mbs))
+            plt.savefig('leaky_relu_training_data_acc_alpha_{}_mbs_{}.png'.format(alpha, mbs))
+            # plt.show()
+            plt.close()
+
+            train_loss_arr = np.asarray(train_loss_list)
+            plt.title('alpha: {} mbs: {}'.format(alpha, mbs))
+            plt.xlabel('training steps')
+            plt.ylabel('loss')
+            plt.plot(train_loss_arr)
+            plt.savefig('leaky_relu_training_data_loss_alpha_{}_mbs_{}.png'.format(alpha, mbs))
             # plt.show()
             plt.close()
 
     if graphs:
-        test_acc_arr = np.asarray(test_acc_list_two_convs)
+        test_acc_arr = np.asarray(test_acc_list)
         plt.title('accuracy on test set with mbs: {}'.format(mbs))
         plt.xticks(np.arange(len(alphas)), alphas)
         plt.ylabel('accuracy')
+        plt.xlabel('alpha values')
         plt.ylim(90, 100)
         plt.plot(test_acc_arr)
         plt.savefig('leaky_relu_test_data_mbs_{}.png'.format(mbs))

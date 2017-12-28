@@ -31,12 +31,20 @@ def load_data(file, num_classes, flatten=False):
     return x_train, y_train, x_test, y_test
 
 
-def normalize_data(data):
+# def normalize_data(data):
+#
+#     data /= data.max()
+#     data -= data.mean()
+#
+#     return data
 
-    data /= data.max()
-    data -= data.mean()
-
-    return data
+def normalize_data(X):
+    for i in range(X.shape[0]):
+        # zero mean
+        X[i, ...] = X[i, ...] - np.mean(X[i, ...].ravel())
+        # X[i, ...] = X[i, ...] / np.std(X[i, ...].ravel())
+        X[i,...] = X[i,...] / np.maximum(np.finfo(np.float32).eps, np.sqrt(np.sum(X[i,...].ravel() ** 2)))
+    return X
 
 
 def one_hot(data, num_classes):
