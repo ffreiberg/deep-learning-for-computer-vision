@@ -11,10 +11,8 @@ from load_data import load_data, _file
 
 #only works if 0 < alpha < 1 (what alpha should be)
 def leaky_relu(x, alpha):
-    # return tf.maximum(x, alpha * x)
-    if x > 0:
-        return x
-    return x * alpha
+    return tf.maximum(x, alpha * x)
+
 
 def reshape(data):
     return np.reshape(data, [-1, int(np.sqrt(data.shape)), int(np.sqrt(data.shape)), 1])
@@ -68,7 +66,7 @@ def main(file):
     y = tf.placeholder(tf.float32, [None, 10])
 
     if prelu:
-        a = tf.Variable(initial_value=.05, dtype=tf.float32)
+        a = tf.Variable(initial_value=.1, dtype=tf.float32)
         alphas = [a]
         graphs = False
     else:
