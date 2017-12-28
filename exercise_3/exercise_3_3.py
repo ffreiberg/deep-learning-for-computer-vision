@@ -123,7 +123,7 @@ def main(file):
 
         if graphs:
             train_acc_arr = np.asarray(train_acc_list_two_convs)
-            plt.title('eta: {} mbs: {}'.format(eta, mbs))
+            plt.title('alpha: {} mbs: {}'.format(alpha, mbs))
             plt.xlabel('training steps')
             plt.ylabel('accuracy')
             plt.ylim(0, 100)
