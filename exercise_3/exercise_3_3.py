@@ -54,8 +54,8 @@ def main(file):
     mbs = 100
     epochs = 25
     graphs = True
+    prelu = True
     num_classes = 10
-    alphas = [.9, .5, .25, .1, .05, .01, .005, .001]
     test_acc_list = []
 
     logger.info('loading data from file  {}'.format(file))
@@ -64,6 +64,13 @@ def main(file):
 
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
+
+    if prelu:
+        a = tf.Variable(initial_value=.5, dtype=tf.float32)
+        alphas = [a]
+        graphs = False
+    else:
+        alphas = [.9, .5, .25, .1, .05, .01, .005, .001]
 
     # loop over different learning rates to find the best one
     for alpha in alphas:
@@ -121,10 +128,11 @@ def main(file):
                 end = time.time()
                 logger.info('epoch training took {:.3f}s'.format(end - begin))
             logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
+            alpha_after = sess.run(a)
+            logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
             if graphs:
                 test_acc = acc.eval(feed_dict={x: x_te, y: y_te}) * 100
                 test_acc_list.append(test_acc)
-
 
         if graphs:
             train_acc_arr = np.asarray(train_acc_list)
