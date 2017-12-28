@@ -2,6 +2,9 @@ import time
 import logging
 import numpy as np
 import tensorflow as tf
+# import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from load_data import load_data, _file
 
@@ -125,7 +128,6 @@ def main(file):
             plt.ylabel('accuracy')
             plt.ylim(0, 100)
             plt.plot(train_acc_arr)
-            plt.legend()
             plt.savefig('leaky_relu_training_data_alpha_{}_mbs_{}.png'.format(alpha, mbs))
             # plt.show()
             plt.close()
@@ -137,7 +139,6 @@ def main(file):
         plt.ylabel('accuracy')
         plt.ylim(0, 100)
         plt.plot(test_acc_arr)
-        plt.legend()
         plt.savefig('leaky_relu_test_data_mbs_{}.png'.format(mbs))
         # plt.show()
         plt.close()
