@@ -68,7 +68,7 @@ def main(file):
     y = tf.placeholder(tf.float32, [None, 10])
 
     if prelu:
-        a = tf.Variable(initial_value=.5, dtype=tf.float32)
+        a = tf.Variable(initial_value=.05, dtype=tf.float32)
         alphas = [a]
         graphs = False
     else:
