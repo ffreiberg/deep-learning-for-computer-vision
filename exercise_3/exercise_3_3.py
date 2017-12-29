@@ -66,7 +66,7 @@ def main(file):
     y = tf.placeholder(tf.float32, [None, 10])
 
     if prelu:
-        a = tf.Variable(initial_value=.1, dtype=tf.float32)
+        a = tf.Variable(initial_value=.05, dtype=tf.float32)
         alphas = [a]
         graphs = False
     else:
@@ -166,6 +166,11 @@ def main(file):
         # plt.show()
         plt.close()
 
+
+'''
+test accuracy:: 95.19%
+Optimum value for alpha after training: 0.00016570596199017018
+'''
 
 if __name__ == '__main__':
     logger = logging.getLogger('ex3_3')
