@@ -11,7 +11,7 @@ from load_data import load_data, _file
 
 #only works if 0 < alpha < 1 (what alpha should be)
 def leaky_relu(x, alpha):
-    return tf.maximum(x, alpha * x)
+    return tf.maximum(x, tf.abs(alpha) * x)
 
 
 def reshape(data):
