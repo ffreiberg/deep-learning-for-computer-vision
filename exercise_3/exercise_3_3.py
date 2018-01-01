@@ -257,7 +257,7 @@ def ex_batch_norm(file):
             plt.ylabel('accuracy')
             plt.ylim(0, 100)
             plt.plot(train_acc_arr)
-            plt.savefig('leaky_relu_bn_training_data_acc_alpha_{}_mbs_{}.png'.format(mbs))
+            plt.savefig('leaky_relu_bn_training_data_acc_mbs_{}.png'.format(mbs))
             # plt.show()
             plt.close()
 
@@ -266,7 +266,7 @@ def ex_batch_norm(file):
             plt.xlabel('training steps')
             plt.ylabel('loss')
             plt.plot(train_loss_arr)
-            plt.savefig('leaky_relu_bn_training_data_loss_alpha_{}_mbs_{}.png'.format(mbs))
+            plt.savefig('leaky_relu_bn_training_data_loss_mbs_{}.png'.format(mbs))
             # plt.show()
             plt.close()
 
