@@ -210,7 +210,7 @@ def ex_batch_norm(file):
     h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
     o_fc = tf.matmul(h_pool_fc, w_fc) + b_fc
     bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
-    h_fc = leaky_relu(bn_fc, a)
+    h_fc = leaky_relu(o_fc, a)
 
     w_out = weight([1024, 10])
     b_out = bias([10])
