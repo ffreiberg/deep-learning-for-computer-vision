@@ -187,7 +187,8 @@ def ex_batch_norm(file):
 
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
-    a = tf.Variable(initial_value=.05, dtype=tf.float32)
+    # a = tf.Variable(initial_value=.05, dtype=tf.float32)
+    a = 0.00016570596199017018
     is_training = tf.placeholder(tf.bool)
 
 
