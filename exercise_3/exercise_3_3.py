@@ -85,7 +85,7 @@ def ex_prelu(file):
         # first conv layer
         w_conv1 = weight([5, 5, 1, 32])
         b_conv1 = bias([32])
-        h_conv1 = leaky_relu(conv2d(x, w_conv1) + b_conv1)
+        h_conv1 = leaky_relu(conv2d(x, w_conv1) + b_conv1, alpha)
         h_pool1 = max_pool_2x2(h_conv1)
 
         w_conv2 = weight([5, 5, 32, 64])
@@ -210,7 +210,7 @@ def ex_batch_norm(file):
     h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
     o_fc = tf.matmul(h_pool_fc, w_fc) + b_fc
     bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
-    h_fc = leaky_relu(o_fc, a)
+    h_fc = leaky_relu(bn_fc, a)
 
     w_out = weight([1024, 10])
     b_out = bias([10])
@@ -276,5 +276,5 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     logging.getLogger().addHandler(logging.StreamHandler())
 
-    # ex_prelu(file=_file)
-    ex_batch_norm(_file)
+    ex_prelu(file=_file)
+    # ex_batch_norm(_file)
