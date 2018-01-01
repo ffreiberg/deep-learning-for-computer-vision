@@ -276,5 +276,5 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     logging.getLogger().addHandler(logging.StreamHandler())
 
-    ex_prelu(file=_file)
-    # ex_batch_norm(_file)
+    # ex_prelu(file=_file)
+    ex_batch_norm(_file)
