@@ -193,23 +193,20 @@ def ex_batch_norm(file):
 
 
     w_conv1 = weight([5, 5, 1, 32])
-    b_conv1 = bias([32])
-    o_conv1= conv2d(x, w_conv1) + b_conv1
+    o_conv1= conv2d(x, w_conv1)
     bn_conv1 = tf.contrib.layers.batch_norm(o_conv1, center=True, scale=True, is_training=is_training)
     h_conv1 = leaky_relu(bn_conv1, a)
     h_pool1 = max_pool_2x2(h_conv1)
 
     w_conv2 = weight([5, 5, 32, 64])
-    b_conv2 = bias([64])
-    o_conv2 = conv2d(h_pool1, w_conv2) + b_conv2
+    o_conv2 = conv2d(h_pool1, w_conv2)
     bn_conv2 = tf.contrib.layers.batch_norm(o_conv2, center=True, scale=True, is_training=is_training)
     h_conv2 = leaky_relu(bn_conv2, a)
     h_pool2 = max_pool_2x2(h_conv2)
 
     w_fc = weight([7 * 7 * 64, 1024])
-    b_fc = bias([1024])
     h_pool_fc = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
-    o_fc = tf.matmul(h_pool_fc, w_fc) + b_fc
+    o_fc = tf.matmul(h_pool_fc, w_fc)
     bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
     h_fc = leaky_relu(bn_fc, a)
 
