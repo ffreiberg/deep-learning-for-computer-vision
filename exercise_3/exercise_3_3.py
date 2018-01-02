@@ -173,7 +173,7 @@ def ex_prelu(file):
 
 def ex_batch_norm(file):
     eta = 1e-4
-    mbs = 100
+    mbs = 10
     epochs = 25
     num_classes = 10
     train_acc_list = []
@@ -188,7 +188,7 @@ def ex_batch_norm(file):
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
     # a = tf.Variable(initial_value=.05, dtype=tf.float32)
-    a = 0.00016570596199017018
+    a = 0.05
     is_training = tf.placeholder(tf.bool)
 
 
