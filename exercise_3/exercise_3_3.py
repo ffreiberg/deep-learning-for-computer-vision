@@ -173,7 +173,7 @@ def ex_prelu(file):
 
 def ex_batch_norm(file):
     eta = 1e-4
-    mbs = 10
+    mbs = 100
     epochs = 25
     num_classes = 10
     train_acc_list = []
@@ -187,8 +187,8 @@ def ex_batch_norm(file):
 
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
-    # a = tf.Variable(initial_value=.05, dtype=tf.float32)
-    a = 0.05
+    a = tf.Variable(initial_value=.05, dtype=tf.float32)
+    # a = 0.05
     is_training = tf.placeholder(tf.bool)
 
 
@@ -246,8 +246,8 @@ def ex_batch_norm(file):
             logger.info('epoch training took {:.3f}s'.format(end - begin))
         test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
         logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
-        # alpha_after = sess.run(a)
-        # logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
+        alpha_after = sess.run(a)
+        logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
 
         if graphs:
             train_acc_arr = np.asarray(train_acc_list)
