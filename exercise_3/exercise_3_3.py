@@ -213,7 +213,7 @@ def ex_batch_norm(file):
     w_out = weight([1024, 10])
     b_out = bias([10])
 
-    pred = tf.matmul(h_fc, w_out) + b_out
+    pred = tf.matmul(h_fc, w_out)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
     train = tf.train.AdamOptimizer(eta).minimize(loss)
