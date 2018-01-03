@@ -172,7 +172,7 @@ def ex_prelu(file):
 
 
 def ex_batch_norm(file):
-    eta = 1e-4
+    eta = .1
     mbs = 100
     epochs = 25
     num_classes = 10
