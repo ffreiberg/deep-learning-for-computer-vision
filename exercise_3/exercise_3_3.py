@@ -172,12 +172,13 @@ def ex_prelu(file):
 
 
 def ex_batch_norm(file):
-    eta = .01
+    eta = 1e-4
     mbs = 100
-    epochs = 15
+    epochs = 50
     num_classes = 10
     train_acc_list = []
     train_loss_list = []
+    dropout = .25
 
     graphs = True
 
@@ -210,10 +211,12 @@ def ex_batch_norm(file):
     bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
     h_fc = leaky_relu(bn_fc, a)
 
+    h_dropout = tf.layers.dropout(h_fc, rate=dropout, training=is_training)
+
     w_out = weight([1024, 10])
     b_out = bias([10])
 
-    pred = tf.matmul(h_fc, w_out)
+    pred = tf.matmul(h_dropout, w_out) + b_out
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
     train = tf.train.AdamOptimizer(eta).minimize(loss)
@@ -244,9 +247,8 @@ def ex_batch_norm(file):
                 train.run(feed_dict={x: batch_x, y: batch_y, is_training:True})
             end = time.time()
             logger.info('epoch training took {:.3f}s'.format(end - begin))
-        # test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
-        # logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
-        logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
+        test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
+        logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
         alpha_after = sess.run(a)
         logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
 
