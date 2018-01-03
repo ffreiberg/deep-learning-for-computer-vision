@@ -244,8 +244,9 @@ def ex_batch_norm(file):
                 train.run(feed_dict={x: batch_x, y: batch_y, is_training:True})
             end = time.time()
             logger.info('epoch training took {:.3f}s'.format(end - begin))
-        test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
-        logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
+        # test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
+        # logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
+        logger.info('test accuracy:: {:.2f}%'.format(acc.eval(feed_dict={x: x_te, y: y_te}) * 100))
         alpha_after = sess.run(a)
         logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
 
