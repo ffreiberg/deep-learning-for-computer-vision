@@ -172,9 +172,9 @@ def ex_prelu(file):
 
 
 def ex_batch_norm(file):
-    eta = .1
+    eta = .01
     mbs = 100
-    epochs = 25
+    epochs = 15
     num_classes = 10
     train_acc_list = []
     train_loss_list = []
