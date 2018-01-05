@@ -178,7 +178,6 @@ def ex_batch_norm(file):
     num_classes = 10
     train_acc_list = []
     train_loss_list = []
-    dropout = .25
 
     graphs = True
 
@@ -188,9 +187,10 @@ def ex_batch_norm(file):
 
     x = tf.placeholder(tf.float32, [None, 28, 28, 1])
     y = tf.placeholder(tf.float32, [None, 10])
-    a = tf.Variable(initial_value=.05, dtype=tf.float32)
-    # a = 0.05
+    # a = tf.Variable(initial_value=.05, dtype=tf.float32)
+    a = 0.05
     is_training = tf.placeholder(tf.bool)
+    keep_prob = tf.placeholder(tf.float32)
 
 
     w_conv1 = weight([5, 5, 1, 32])
@@ -212,17 +212,20 @@ def ex_batch_norm(file):
     o_fc = tf.matmul(h_pool_fc, w_fc)
     # bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
     bn_fc = tf.layers.batch_normalization(o_fc, center=True, scale=True, training=is_training)
-    h_fc = leaky_relu(o_fc, a)
+    h_fc = leaky_relu(bn_fc, a)
 
-    h_dropout = tf.layers.dropout(h_fc, rate=dropout, training=is_training)
+    h_dropout = tf.nn.dropout(h_fc, keep_prob=keep_prob)
 
     w_out = weight([1024, 10])
     b_out = bias([10])
 
     pred = tf.matmul(h_dropout, w_out) + b_out
 
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
-    train = tf.train.AdamOptimizer(eta).minimize(loss)
+    with tf.control_dependencies(update_ops):
+        train = tf.train.AdamOptimizer(eta).minimize(loss)
     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
     acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -235,25 +238,25 @@ def ex_batch_norm(file):
             for i, b in enumerate(minibatches(x_tr, y_tr, mbs, shuffle=True)):
                 batch_x, batch_y = b
                 if graphs:
-                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y, is_training:True})
+                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
                     train_acc_list.append(train_acc * 100)
-                    train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y, is_training:True})
+                    train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
                     train_loss_list.append(train_loss)
                 if i % 100 == 0:
-                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y, is_training:True})
-                    train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y, is_training:True})
+                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
+                    train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
                     logger.info(
                         'Epoch {}, step {} ({} / {} samples): \tloss: {:.6f}\taccuracy: {:.2f}%'.format(e, i, mbs * i,
                                                                                                         x_tr.shape[0],
                                                                                                         train_loss,
                                                                                                         train_acc * 100))
-                train.run(feed_dict={x: batch_x, y: batch_y, is_training:True})
+                train.run(feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
             end = time.time()
             logger.info('epoch training took {:.3f}s'.format(end - begin))
-        test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False})
+        test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False, keep_prob:1.})
         logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
-        alpha_after = sess.run(a)
-        logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
+        # alpha_after = sess.run(a)
+        # logger.info('Optimum value for alpha after training: {}'.format(alpha_after))
 
         if graphs:
             train_acc_arr = np.asarray(train_acc_list)
