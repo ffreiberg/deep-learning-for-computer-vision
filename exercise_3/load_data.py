@@ -31,6 +31,38 @@ def load_data(file, num_classes, flatten=False):
     return x_train, y_train, x_test, y_test
 
 
+def load_cifar10():
+    import _pickle as pkl
+    num_classes = 10
+
+    X_list = []
+    y_list = []
+
+    for i in range(1, 6):
+        with open('cifar-10-batches-py/data_batch_{}'.format(i), 'rb') as f:
+            data = pkl.load(f, encoding='bytes')
+
+            X_list.append(data[b'data'])
+            y_list.append(data[b'labels'])
+
+    x_train = np.asarray(X_list)
+    x_train = np.reshape(x_train, (x_train.shape[0] * x_train.shape[1], x_train.shape[2]))
+    x_train = normalize_data(x_train)
+
+    y_train = np.asarray(y_list)
+    y_train = y_train.flatten()
+    y_train = one_hot(y_train, num_classes)
+
+    with open('cifar-10-batches-py/test_batch', 'rb') as f:
+        data = pkl.load(f, encoding='bytes')
+        x_test = np.asarray(data[b'data'])
+        x_test = normalize_data(x_test)
+        y_test = np.asarray(data[b'labels'])
+
+    y_test = one_hot(y_test, num_classes)
+
+    return x_train, y_train, x_test, y_test
+
 # def normalize_data(data):
 #
 #     data /= data.max()
