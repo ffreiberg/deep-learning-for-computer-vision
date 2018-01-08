@@ -45,7 +45,7 @@ def load_cifar10():
             X_list.append(data[b'data'])
             y_list.append(data[b'labels'])
 
-    x_train = np.asarray(X_list)
+    x_train = np.asarray(X_list).astype(np.float32)
     x_train = np.reshape(x_train, (x_train.shape[0] * x_train.shape[1], x_train.shape[2]))
     x_train = normalize_data(x_train)
 
@@ -55,7 +55,7 @@ def load_cifar10():
 
     with open('cifar-10-batches-py/test_batch', 'rb') as f:
         data = pkl.load(f, encoding='bytes')
-        x_test = np.asarray(data[b'data'])
+        x_test = np.asarray(data[b'data']).astype(np.float32)
         x_test = normalize_data(x_test)
         y_test = np.asarray(data[b'labels'])
 
@@ -84,3 +84,6 @@ def one_hot(data, num_classes):
     data = np.eye(num_classes)[data.flatten()]
 
     return data
+
+if __name__ == '__main__':
+    load_cifar10()

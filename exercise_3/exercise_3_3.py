@@ -172,10 +172,10 @@ def ex_prelu(file):
 
 
 '''
-test loss: 0.122194      accuracy: 96.41%
+test loss: 0.119998	 accuracy: 96.78%
 '''
 def ex_batch_norm(file):
-    eta = 1e-4
+    eta = 1e-2
     mbs = 100
     epochs = 25
     num_classes = 10
@@ -306,27 +306,23 @@ def ex_bonus():
 
     w_conv1 = weight([3, 3, 1, 32])
     o_conv1 = conv2d(x, w_conv1)
-    # bn_conv1 = tf.contrib.layers.batch_norm(o_conv1, center=True, scale=True, is_training=is_training)
     bn_conv1 = tf.layers.batch_normalization(o_conv1, center=True, scale=True, training=is_training)
     h_conv1 = leaky_relu(bn_conv1, a)
-    h_pool1 = max_pool_2x2(h_conv1)
 
     w_conv2 = weight([3, 3, 32, 64])
-    o_conv2 = conv2d(h_pool1, w_conv2)
-    # bn_conv2 = tf.contrib.layers.batch_norm(o_conv2, center=True, scale=True, is_training=is_training)
+    o_conv2 = conv2d(h_conv1, w_conv2)
     bn_conv2 = tf.layers.batch_normalization(o_conv2, center=True, scale=True, training=is_training)
     h_conv2 = leaky_relu(bn_conv2, a)
     h_pool2 = max_pool_2x2(h_conv2)
 
     w_conv3 = weight([3, 3, 64, 128])
     o_conv3 = conv2d(h_pool2, w_conv3)
-    # bn_conv2 = tf.contrib.layers.batch_norm(o_conv2, center=True, scale=True, is_training=is_training)
     bn_conv3 = tf.layers.batch_normalization(o_conv3, center=True, scale=True, training=is_training)
     h_conv3 = leaky_relu(bn_conv3, a)
     h_pool3 = max_pool_2x2(h_conv3)
 
-    w_fc = weight([5 * 5 * 128, 1024])
-    h_pool_fc = tf.reshape(h_pool3, [-1, 5 * 5 * 128])
+    w_fc = weight([7 * 7 * 128, 1024])
+    h_pool_fc = tf.reshape(h_pool3, [-1, 7 * 7 * 128])
     o_fc = tf.matmul(h_pool_fc, w_fc)
     # bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
     bn_fc = tf.layers.batch_normalization(o_fc, center=True, scale=True, training=is_training)
@@ -365,7 +361,6 @@ def ex_bonus():
             logger.info('epoch training took {:.3f}s'.format(end - begin))
         test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False, keep_prob:1.})
         logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
-
 
 
 if __name__ == '__main__':
