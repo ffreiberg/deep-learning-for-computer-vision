@@ -65,7 +65,7 @@ def ex_bonus(cifar10=True):
 
     y = tf.placeholder(tf.float32, [None, 10])
     a = tf.Variable(initial_value=.05, dtype=tf.float32)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
     is_training = tf.placeholder(tf.bool)
     keep_prob = tf.placeholder(tf.float32)
 
@@ -156,6 +156,8 @@ def ex_bonus(cifar10=True):
         b_out = tf.get_variable('b_out', [10], initializer=tf.constant_initializer(.1))
 
     pred = tf.matmul(h_dropout2, w_out) + b_out
+
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
     with tf.control_dependencies(update_ops):
