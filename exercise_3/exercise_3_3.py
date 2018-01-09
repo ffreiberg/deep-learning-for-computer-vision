@@ -173,6 +173,9 @@ def ex_prelu(file):
 
 '''
 test loss: 0.119998	 accuracy: 96.78%
+with batch norm you can omit bias and you also don't have to use such a small learning rate
+training and test loss converges much faster
+test accuracy also improves faster
 '''
 def ex_batch_norm(file):
     eta = 1e-2
@@ -282,87 +285,6 @@ def ex_batch_norm(file):
             plt.close()
 
 
-def ex_bonus():
-
-    eta = 1e-4
-    mbs = 100
-    epochs = 25
-    num_classes = 10
-
-    # logger.info('Loading CIFAR-10...')
-    # x_tr, y_tr, x_te, y_te = load_cifar10()
-    # logger.info('Finished loading')
-
-    logger.info('loading data from file  {}'.format(_file))
-    x_tr, y_tr, x_te, y_te = load_data(_file, num_classes)
-    logger.info('loading finished')
-
-    x = tf.placeholder(tf.float32, [None, 28, 28, 1])
-    y = tf.placeholder(tf.float32, [None, 10])
-    a = tf.Variable(initial_value=.05, dtype=tf.float32)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-    is_training = tf.placeholder(tf.bool)
-    keep_prob = tf.placeholder(tf.float32)
-
-    w_conv1 = weight([3, 3, 1, 32])
-    o_conv1 = conv2d(x, w_conv1)
-    bn_conv1 = tf.layers.batch_normalization(o_conv1, center=True, scale=True, training=is_training)
-    h_conv1 = leaky_relu(bn_conv1, a)
-
-    w_conv2 = weight([3, 3, 32, 64])
-    o_conv2 = conv2d(h_conv1, w_conv2)
-    bn_conv2 = tf.layers.batch_normalization(o_conv2, center=True, scale=True, training=is_training)
-    h_conv2 = leaky_relu(bn_conv2, a)
-    h_pool2 = max_pool_2x2(h_conv2)
-
-    w_conv3 = weight([3, 3, 64, 128])
-    o_conv3 = conv2d(h_pool2, w_conv3)
-    bn_conv3 = tf.layers.batch_normalization(o_conv3, center=True, scale=True, training=is_training)
-    h_conv3 = leaky_relu(bn_conv3, a)
-    h_pool3 = max_pool_2x2(h_conv3)
-
-    w_fc = weight([7 * 7 * 128, 1024])
-    h_pool_fc = tf.reshape(h_pool3, [-1, 7 * 7 * 128])
-    o_fc = tf.matmul(h_pool_fc, w_fc)
-    # bn_fc = tf.contrib.layers.batch_norm(o_fc, center=True, scale=True, is_training=is_training)
-    bn_fc = tf.layers.batch_normalization(o_fc, center=True, scale=True, training=is_training)
-    h_fc = leaky_relu(bn_fc, a)
-
-    h_dropout = tf.nn.dropout(h_fc, keep_prob=keep_prob)
-
-    w_out = weight([1024, 10])
-    b_out = bias([10])
-
-    pred = tf.matmul(h_dropout, w_out) + b_out
-
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred))
-    with tf.control_dependencies(update_ops):
-        train = tf.train.AdamOptimizer(eta).minimize(loss)
-    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
-    acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-    # training and evaluation
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for e in range(epochs):
-            begin = time.time()
-            for i, b in enumerate(minibatches(x_tr, y_tr, mbs, shuffle=True)):
-                batch_x, batch_y = b
-                if i % 100 == 0:
-                    train_acc = acc.eval(feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
-                    train_loss = sess.run(loss, feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
-                    logger.info(
-                        'Epoch {}, step {} ({} / {} samples): \tloss: {:.6f}\taccuracy: {:.2f}%'.format(e, i, mbs * i,
-                                                                                                        x_tr.shape[0],
-                                                                                                        train_loss,
-                                                                                                        train_acc * 100))
-                train.run(feed_dict={x: batch_x, y: batch_y, is_training:True, keep_prob:0.5})
-            end = time.time()
-            logger.info('epoch training took {:.3f}s'.format(end - begin))
-        test_loss, test_acc = sess.run([loss, acc], feed_dict={x: x_te, y: y_te, is_training:False, keep_prob:1.})
-        logger.info('test loss: {:.6f}\t accuracy: {:.2f}%'.format(test_loss, test_acc * 100))
-
-
 if __name__ == '__main__':
     logger = logging.getLogger('ex3_3')
     logger.setLevel(logging.INFO)
@@ -372,6 +294,5 @@ if __name__ == '__main__':
 
     np.random.seed(seed=seed)
 
-    # ex_prelu(file=_file)
-    # ex_batch_norm(_file)
-    ex_bonus()
+    ex_prelu(_file)
+    ex_batch_norm(_file)
