@@ -63,26 +63,22 @@ so you could have shape 64 or 65 in matters of exercise 4.1
 def ex_4_1b():
 
     inp = np.ones(shape=(1, 64, 48, 17))
-    out = np.zeros(shape=(1, 64, 48, 13))
+    out = np.zeros(shape=(1, 64, 48, 17))
 
     x = tf.placeholder(np.float32, [1, 64, 48, 17])
-    y = tf.placeholder(np.float32, [1, 64, 48, 13])
+    y = tf.placeholder(np.float32, [1, 64, 48, 17])
 
+    # encoder
     W1 = tf.Variable(tf.zeros([3, 3, 17, 15]))
     layer1 = tf.nn.conv2d(x, W1, strides=[1, 2, 3, 1], padding='SAME')
-    print(layer1.get_shape())
     W2 = tf.Variable(tf.zeros([3, 3, 15, 13]))
     layer2 = tf.nn.conv2d(layer1, W2, strides=[1, 3, 4, 1], padding='SAME')
-    print(layer2.get_shape())
 
-    # unable to upscale color channels
-    W3 = tf.Variable(tf.zeros([3, 3, 13, 13]))
-    print(W3.get_shape())
-    layer3 = tf.nn.conv2d_transpose(layer2, W3, output_shape=[1, 32, 16, 13],strides=[1, 3, 4, 1], padding='SAME')
-    print(layer3.get_shape())
-    W4 = tf.Variable(tf.zeros([3, 3, 13, 13]))
-    layer4 = tf.nn.conv2d_transpose(layer3, W4, output_shape=[1, 64, 48, 13], strides=[1, 2, 3, 1], padding='SAME')
-    print(layer4.get_shape())
+    # decoder
+    W3 = tf.Variable(tf.zeros([3, 3, 15, 13]))
+    layer3 = tf.nn.conv2d_transpose(layer2, W3, output_shape=[1, 32, 16, 15],strides=[1, 3, 4, 1], padding='SAME')
+    W4 = tf.Variable(tf.zeros([3, 3, 17, 15]))
+    layer4 = tf.nn.conv2d_transpose(layer3, W4, output_shape=[1, 64, 48, 17], strides=[1, 2, 3, 1], padding='SAME')
 
     output = layer4 + y
 
