@@ -25,6 +25,28 @@ def one_hot(data, num_classes):
     return data
 
 
+def minibatches(inputs_x, inputs_y, targets_x, targets_y, mbs, shuffle):
+    idx = np.arange(len(inputs_x))
+    if shuffle:
+         np.random.shuffle(idx)
+    for i in range(0, len(inputs_x) - mbs + 1, mbs):
+         if shuffle:
+             batch_idx = idx[i:i + mbs]
+             label_index = []
+             for index in batch_idx:
+                 if np.all(inputs_y[index] == targets_y[index]):
+                     label_index.append(index)
+                 else:
+                     # eventuell for schleife verbessern, da diese über letztes Element laufen kann also noch mit if commando länge abfangen dann mit while
+                     for index_iterator in range(index, len(targets_x)):
+                         if np.all(inputs_y[index] == targets_y[index_iterator]):
+                             label_index.append(index_iterator)
+                             break
+         print(np.all(inputs_y[batch_idx] == targets_y[label_index]))
+         yield inputs_x[batch_idx], targets_x[label_index]
+
+
+
 
 
 def weight_variable(shape):
@@ -51,11 +73,12 @@ def main():
     y_cyr = one_hot(y_cyr, 14)
     y_lat = one_hot(y_lat, 14)
 
+
     x = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
-    y_ = tf.placeholder(tf.float32, shape=[None, 14])
+    y_ = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
 
 
-    minibatchsize = 1000
+    minibatchsize = 300
 
 
     #-------------encoding-----------------
@@ -96,15 +119,45 @@ def main():
     trans_conv1 = conv2d_transpose(h_trans_conv2, W_trans_conv1, [1, 2, 2, 1], [minibatchsize, 28, 28, 1]) + b_trans_conv1
     h_trans_conv1 = tf.nn.relu(trans_conv1)
 
-    loss = h_trans_conv1
+    #------------Wird aktuell nicht verwendet------------------
+    h_flat = tf.reshape(h_trans_conv1, [-1, 28 * 28])
+    W_fc1 = weight_variable([28 * 28, 1024])
+    b_fc1 = bias_variable([1024])
+    h_fc1 = tf.nn.relu(tf.matmul(h_flat, W_fc1) + b_fc1)
+
+
+    W_fc2 = weight_variable([1024, 784])
+    b_fc2 = bias_variable([784])
+    h_fc2 = tf.matmul(h_fc1, W_fc2) + b_fc2
+    #----------------------------------------------------------
+
+    loss = tf.losses.mean_squared_error(labels=y_, predictions=h_trans_conv1)
+    train_step = tf.train.AdamOptimizer(0.001).minimize(loss)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        a = sess.run(loss, {x: x_cyr[0:minibatchsize].reshape((minibatchsize,28,28,1))})
-        pass
+        for e in range(20):
+            print("Epoch: ", e)
+            for i, batch in enumerate(minibatches(x_cyr, y_cyr, x_lat, y_lat, minibatchsize, True)):
+                batch_cyr, batch_lat = batch
+                batch_cyr = batch_cyr.reshape((minibatchsize, 28, 28, 1))
+                batch_lat = batch_lat.reshape((minibatchsize, 28, 28, 1))
+                train_step.run(feed_dict={x: batch_cyr, y_: batch_lat})
+                print(sess.run(loss, feed_dict={x: batch_cyr, y_: batch_lat}))
+
+        output = sess.run(h_trans_conv1, feed_dict={x: x_cyr[0:300].reshape((300, 28,28,1)), y_: x_lat[0:300].reshape((300,28,28,1))})
 
 
-    #plt.imshow(a[0].reshape((28, 28)), cmap='Greys')
+    plt.figure(1)
+    plt.subplot(311)
+    plt.imshow(output[0].reshape((28, 28)), cmap='Greys')
+    plt.subplot(312)
+    plt.imshow(x_lat[0].reshape((28, 28)), cmap='Greys')
+    plt.subplot(313)
+    plt.imshow(x_cyr[0].reshape((28, 28)), cmap='Greys')
+    plt.show()
+
+    #plt.imshow(output[0].reshape((28, 28)), cmap='Greys')
     #plt.show()
 
 
