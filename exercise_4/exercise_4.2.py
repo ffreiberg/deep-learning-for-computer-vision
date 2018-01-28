@@ -86,10 +86,9 @@ def separate_test_and_training(inputs_x, inputs_y, targets_x, targets_y, size):
     return test_inputs_x, test_inputs_y, test_targets_x, test_targets_y, train_inputs_x, train_inputs_y, train_targets_x, train_targets_y
 
 
-
 def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)#tf.contrib.layers.xavier_initializer()
-    return tf.Variable(initial)
+    initializer = tf.contrib.layers.xavier_initializer()
+    return tf.Variable(initializer(shape))
 
 
 def bias_variable(shape):
@@ -111,7 +110,7 @@ def main():
     y_cyr = one_hot(y_cyr, 14)
     y_lat = one_hot(y_lat, 14)
 
-    #test_inputs_x, test_inputs_y, test_targets_x, test_targets_y, train_inputs_x, train_inputs_y, train_targets_x, train_targets_y = separate_test_and_training(x_cyr, y_cyr, x_lat, y_lat, 500)
+    test_inputs_x, test_inputs_y, test_targets_x, test_targets_y, train_inputs_x, train_inputs_y, train_targets_x, train_targets_y = separate_test_and_training(x_cyr, y_cyr, x_lat, y_lat, 500)
 
 
     x = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
@@ -159,6 +158,8 @@ def main():
     trans_conv1 = conv2d_transpose(h_trans_conv2, W_trans_conv1, [1, 2, 2, 1], [minibatchsize, 28, 28, 1]) + b_trans_conv1
     h_trans_conv1 = tf.nn.relu(trans_conv1)
 
+
+
     #------------Wird aktuell nicht verwendet------------------
     h_flat = tf.reshape(h_trans_conv1, [-1, 28 * 28])
     W_fc1 = weight_variable([28 * 28, 1024])
@@ -166,39 +167,49 @@ def main():
     h_fc1 = tf.nn.relu(tf.matmul(h_flat, W_fc1) + b_fc1)
 
 
+    keep_prob = tf.placeholder(tf.float32)
+    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+
     W_fc2 = weight_variable([1024, 784])
     b_fc2 = bias_variable([784])
-    h_fc2 = tf.matmul(h_fc1, W_fc2) + b_fc2
+    h_fc2 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
     #----------------------------------------------------------
 
-    loss = tf.losses.mean_squared_error(labels=y_, predictions=h_trans_conv1)
+    loss = tf.losses.mean_squared_error(labels=tf.reshape(y_, [-1, 28 * 28]), predictions=h_fc2)
     train_step = tf.train.AdamOptimizer(0.001).minimize(loss)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for e in range(1):
             print("Epoch: ", e)
-            for i, batch in enumerate(minibatches(x_cyr, y_cyr, x_lat, y_lat, minibatchsize, True)):
+            for i, batch in enumerate(minibatches(train_inputs_x, train_inputs_y, train_targets_x, train_targets_y, minibatchsize, True)):
                 batch_cyr, batch_lat = batch
                 batch_cyr = batch_cyr.reshape((minibatchsize, 28, 28, 1))
                 batch_lat = batch_lat.reshape((minibatchsize, 28, 28, 1))
-                train_step.run(feed_dict={x: batch_cyr, y_: batch_lat})
-            print(sess.run(loss, feed_dict={x: batch_cyr, y_: batch_lat}))
+                train_step.run(feed_dict={x: batch_cyr, y_: batch_lat, keep_prob: 0.5})
+            print(sess.run(loss, feed_dict={x: batch_cyr, y_: batch_lat, keep_prob: 0.5}))
 
-        output = sess.run(h_trans_conv1, feed_dict={x: x_cyr[0:300].reshape((300, 28,28,1))})
+        output = sess.run(h_fc2, feed_dict={x: test_inputs_x[0:300].reshape((300, 28,28,1)), keep_prob: 1.0})
+
 
 
     plt.figure(1)
-    plt.subplot(311)
-    plt.imshow(output[0].reshape((28, 28)), cmap='Greys')
-    plt.subplot(312)
-    plt.imshow(x_lat[0].reshape((28, 28)), cmap='Greys')
-    plt.subplot(313)
-    plt.imshow(x_cyr[0].reshape((28, 28)), cmap='Greys')
-    plt.show()
+    counter = 331
+    for i in range(1, 4):
+        plt.subplot(counter)
+        plt.imshow(output[i].reshape((28, 28)), cmap='Greys')
+        plt.subplot(counter+3)
+        plt.imshow(test_targets_x[i].reshape((28, 28)), cmap='Greys')
+        plt.subplot(counter + 6)
+        plt.imshow(test_inputs_x[i].reshape((28, 28)), cmap='Greys')
+        counter += 1
+
+
+
 
     #plt.imshow(output[0].reshape((28, 28)), cmap='Greys')
-    #plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
