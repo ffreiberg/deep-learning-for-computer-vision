@@ -37,15 +37,53 @@ def minibatches(inputs_x, inputs_y, targets_x, targets_y, mbs, shuffle):
                  if np.all(inputs_y[index] == targets_y[index]):
                      label_index.append(index)
                  else:
-                     # eventuell for schleife verbessern, da diese über letztes Element laufen kann also noch mit if commando länge abfangen dann mit while
-                     for index_iterator in range(index, len(targets_x)):
+                     index_iterator = index
+                     while index_iterator < len(targets_x):
+                         index_iterator += 1
                          if np.all(inputs_y[index] == targets_y[index_iterator]):
                              label_index.append(index_iterator)
                              break
-         print(np.all(inputs_y[batch_idx] == targets_y[label_index]))
+                         else:
+                             if index_iterator == len(targets_x) -1:
+                                 index_iterator = 0
+         #print(np.all(inputs_y[batch_idx] == targets_y[label_index]))
          yield inputs_x[batch_idx], targets_x[label_index]
 
 
+def separate_test_and_training(inputs_x, inputs_y, targets_x, targets_y, size):
+    idx = np.arange(len(inputs_x))
+    np.random.shuffle(idx)
+    test_index = idx[0:size]
+    test_inputs_x = inputs_x[test_index]
+    test_inputs_y = inputs_y[test_index]
+
+    test_targets_x = targets_x[test_index]
+    test_targets_y = targets_y[test_index]
+
+    counter = 0
+    while counter < size:
+        if np.all(test_inputs_y[counter] == test_targets_y[counter]):
+            pass
+        else:
+            new_counter = counter
+            while new_counter < size:
+                if new_counter == size-1:
+                    new_counter = 0
+                new_counter += 1
+                if np.all(test_inputs_y[counter] == test_targets_y[new_counter]):
+                    test_targets_y[counter] = test_targets_y[new_counter]
+                    test_targets_x[counter] = test_targets_x[new_counter]
+                    break
+        counter += 1
+
+    train_index = idx[size:]
+    train_inputs_x = inputs_x[train_index]
+    train_inputs_y = inputs_y[train_index]
+    train_index = np.append(idx[size:], np.arange(len(inputs_x), len(targets_x)))
+    train_targets_x = targets_x[train_index]
+    train_targets_y = targets_y[train_index]
+
+    return test_inputs_x, test_inputs_y, test_targets_x, test_targets_y, train_inputs_x, train_inputs_y, train_targets_x, train_targets_y
 
 
 
@@ -72,6 +110,8 @@ def main():
     x_lat = normalize(x_lat)
     y_cyr = one_hot(y_cyr, 14)
     y_lat = one_hot(y_lat, 14)
+
+    #test_inputs_x, test_inputs_y, test_targets_x, test_targets_y, train_inputs_x, train_inputs_y, train_targets_x, train_targets_y = separate_test_and_training(x_cyr, y_cyr, x_lat, y_lat, 500)
 
 
     x = tf.placeholder(tf.float32, shape=[None, 28, 28, 1])
@@ -136,16 +176,16 @@ def main():
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for e in range(20):
+        for e in range(1):
             print("Epoch: ", e)
             for i, batch in enumerate(minibatches(x_cyr, y_cyr, x_lat, y_lat, minibatchsize, True)):
                 batch_cyr, batch_lat = batch
                 batch_cyr = batch_cyr.reshape((minibatchsize, 28, 28, 1))
                 batch_lat = batch_lat.reshape((minibatchsize, 28, 28, 1))
                 train_step.run(feed_dict={x: batch_cyr, y_: batch_lat})
-                print(sess.run(loss, feed_dict={x: batch_cyr, y_: batch_lat}))
+            print(sess.run(loss, feed_dict={x: batch_cyr, y_: batch_lat}))
 
-        output = sess.run(h_trans_conv1, feed_dict={x: x_cyr[0:300].reshape((300, 28,28,1)), y_: x_lat[0:300].reshape((300,28,28,1))})
+        output = sess.run(h_trans_conv1, feed_dict={x: x_cyr[0:300].reshape((300, 28,28,1))})
 
 
     plt.figure(1)
