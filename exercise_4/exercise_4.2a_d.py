@@ -46,7 +46,6 @@ def minibatches(inputs_x, inputs_y, targets_x, targets_y, mbs, shuffle):
                          else:
                              if index_iterator == len(targets_x) -1:
                                  index_iterator = 0
-         #print(np.all(inputs_y[batch_idx] == targets_y[label_index]))
          yield inputs_x[batch_idx], targets_x[label_index]
 
 
@@ -103,6 +102,8 @@ def conv2d_transpose(x, W, stride, outputshape):
     return tf.nn.conv2d_transpose(x, W, strides=stride, padding="SAME", output_shape=outputshape)
 
 
+
+# We suggest to use the cyrillic signs as input and the latin signs as label and minimize the MSE of this
 def main():
     x_cyr, y_cyr, x_lat, y_lat = load_data()
     x_cyr = normalize(x_cyr)
@@ -218,10 +219,6 @@ def main():
         plt.imshow(test_inputs_x[i].reshape((28, 28)), cmap='Greys')
         counter += 1
 
-
-
-
-    #plt.imshow(output[0].reshape((28, 28)), cmap='Greys')
     plt.show()
 
 
