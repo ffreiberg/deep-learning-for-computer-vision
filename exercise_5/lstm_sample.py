@@ -236,6 +236,10 @@ def lfg(args):
 
     logger.info('{} hidden features performed best on average'.format(np.asarray(_num_hidden[np.argmax(all_avg_val_accs)])))
 
+
+'''
+150 hidden features performed best on average
+'''
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
